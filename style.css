@@ -59,7 +59,7 @@ html, body, .container-table {
 
 .rainbow-text {
     display: inline;
-    background-image: linear-gradient(to left, violet, indigo, blue, green, yellow, orange, red);
+    background-image: linear-gradient(to left, rgb(0, 44, 157), rgb(255, 132, 0));
     -webkit-background-clip: text;
     color: transparent;
     font-size: 10em;
