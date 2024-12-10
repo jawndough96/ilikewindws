@@ -1,8 +1,8 @@
 {
-  "name": "onlinemc",
+  "name": "MaxwellCraft Menu",
   "description": "Play Minecraft in any browser!",
   "icons": [{
-    "src": "/logo.png",
+    "src": "/icon2.png",
       "sizes": "460x460",
       "type": "image/png"
     }],
