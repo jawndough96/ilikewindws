@@ -252,20 +252,18 @@ body.select-version .play-button {
 
 .rainbow-text{position: relative;}
 
-.splash{
-	background-image: unset;
+.splash {
+    background-image: unset;
     -webkit-background-clip: unset;
     color: unset;
     text-align: center;
     -webkit-text-stroke: 0;
-	/*	*/
-	position:absolute;
-	right:0;
-	top:calc(100% - 40px);
-	transform: rotate(-20deg);
-	color: yellow;
-	display:block;
-	font-size:34px;
+    position: absolute; /* Using absolute positioning */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%) rotate(-20deg); /* Center and rotate */
+    color: yellow;
+    display: block;
+    font-size: 34px;
 }
 
 .splash.bigtext{
