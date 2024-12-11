@@ -251,7 +251,9 @@ body.select-version .play-button {
 }
 
 .rainbow-text{position: relative;}
-
+.d-flex {
+    position:relative; /*ensure this is set*/
+}
 .splash {
     background-image: unset;
     -webkit-background-clip: unset;
