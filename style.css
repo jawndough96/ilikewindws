@@ -256,7 +256,7 @@ body.select-version .play-button {
 }
 .splash {
     position: absolute;
-    top: calc(20% * 4); /* 4th row (0-indexed, so the start of the 5th cell) */
+    top: calc(20% * 3); /* 3th row (0-indexed, so the start of the 4th cell) */
     left: calc(8.33% * 9); /* 9th column (0-indexed, so the start of the 10th cell) */
     transform: translate(-50%, -50%) rotate(-20deg); /* Center and rotate */
     color: yellow;
