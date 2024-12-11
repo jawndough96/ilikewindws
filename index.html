@@ -106,7 +106,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script src="splash.js"></script>
     <script>
-        // Function to apply the breathing, rotation, and position effects
+        // Function to apply the breathing and rotation effects
         function applyEffects() {
             const splash = document.querySelector('.splash');
             if (!splash) return;
@@ -116,16 +116,13 @@
             let direction = 1;
             const initialRotation = -20; // Original rotation in degrees
 
-            // Retain original position
-            const initialPosition = getComputedStyle(splash).transform;
-
             function animate() {
-                scale += direction * 0.01;
+                scale += direction * 0.005;
                 if (scale >= 1.1 || scale <= 1) {
                     direction *= -1;
                 }
-                const transformString = `translate(${splash.style.right}, ${splash.style.top}) scale(${scale}) rotate(${initialRotation}deg)`;
-                splash.style.transform = `${initialPosition} scale(${scale}) rotate(${initialRotation}deg)`;
+                const transformString = `scale(${scale}) rotate(${initialRotation}deg)`;
+                splash.style.transform = transformString;
                 requestAnimationFrame(animate);
             }
             
