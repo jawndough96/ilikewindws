@@ -100,21 +100,29 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
 	<script src="splash.js"></script>	
 	<script>
-	        // Function to apply the breathing effect
-			function applyBreathingEffect() {
+
+<script defer src="/_vercel/insights/script.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script src="splash.js"></script>
+    <script>
+        // Function to apply the breathing and rotation effects
+        function applyEffects() {
             const splash = document.querySelector('.splash');
             if (!splash) return;
             
-            // Initial settings
+            // Initial settings for breathing and rotation
             let scale = 1;
             let direction = 1;
-            
+            const initialRotation = -20; // Original rotation in degrees
+
             function animate() {
-                scale += direction * 0.01;
+                scale += direction * 0.5;
                 if (scale >= 1.1 || scale <= 1) {
                     direction *= -1;
                 }
-                splash.style.transform = `scale(${scale})`;
+                const transformString = `scale(${scale}) rotate(${initialRotation}deg)`;
+                splash.style.transform = transformString;
                 requestAnimationFrame(animate);
             }
             
@@ -123,7 +131,7 @@
         
         // Call the function when the page is fully loaded
         function myFunction() {
-            applyBreathingEffect();
+            applyEffects();
         }
         
         window.onload = function () {
