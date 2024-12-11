@@ -1,6 +1,5 @@
 # HI THIS IS NOT AN ORIGINAL PROJECT SCROLL DOWN FOR INFO 
-# PLEASE MAKE A FORK/[DOWNLOAD THIS REPO RN](https://codeload.github.com/player-k12/player-k12.github.io/zip/refs/heads/main), THIS REPO WILL BE DMCA'D
-## Host the website
+# [Download this repo if you want](https://codeload.github.com/player-k12/player-k12.github.io/zip/refs/heads/main)
 
 ## those who decided to give this repo a star and fork it :
 [![Stargazers repo roster for @player-k12/player-k12.github.io](http://reporoster.com/stars/player-k12/player-k12.github.io)](http://github.com/player-k12/player-k12.github.io/stargazers)
