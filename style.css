@@ -255,14 +255,10 @@ body.select-version .play-button {
     position:relative; /*ensure this is set*/
 }
 .splash {
-    background-image: unset;
-    -webkit-background-clip: unset;
-    color: unset;
-    text-align: center;
-    -webkit-text-stroke: 0;
-    position: absolute; /* Using absolute positioning */
-    left: 50%; /* Center horizontally */
-    transform: translateX(-50%) rotate(-20deg); /* Center and rotate */
+    position: absolute;
+    top: calc(20% * 4); /* 4th row (0-indexed, so the start of the 5th cell) */
+    left: calc(8.33% * 9); /* 9th column (0-indexed, so the start of the 10th cell) */
+    transform: translate(-50%, -50%) rotate(-20deg); /* Center and rotate */
     color: yellow;
     display: block;
     font-size: 34px;
