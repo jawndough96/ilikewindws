@@ -62,7 +62,7 @@ html, body, .container-table {
     background-image: linear-gradient(to left, rgb(0, 44, 157), rgb(255, 132, 0));
     -webkit-background-clip: text;
     color: transparent;
-    font-size: 10em;
+    font-size: 8em;
     text-align: center;
     margin-bottom: 50px;
     -webkit-text-stroke: 5px rgba(0, 0, 0, 0.5);
