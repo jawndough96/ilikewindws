@@ -100,19 +100,36 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
 	<script src="splash.js"></script>	
 	<script>
-		.splash.onload = myFunction;
-	</script>
-	<script>
-		window.onload = function () {
-			//display loader on page load 
-			$('#loading').fadeOut();
-		}
-		
-		setTimeout(function () {
-			//display loader on page load 
-			$('#loading').fadeOut();
-		}, 12 * 1000);
-	</script>
-	<script src="darkmode.js"></script>
+	        // Function to apply the breathing effect
+			function applyBreathingEffect() {
+            const splash = document.querySelector('.splash');
+            if (!splash) return;
+            
+            // Initial settings
+            let scale = 1;
+            let direction = 1;
+            
+            function animate() {
+                scale += direction * 0.01;
+                if (scale >= 1.1 || scale <= 1) {
+                    direction *= -1;
+                }
+                splash.style.transform = `scale(${scale})`;
+                requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+        
+        // Call the function when the page is fully loaded
+        function myFunction() {
+            applyBreathingEffect();
+        }
+        
+        window.onload = function () {
+            $('#loading').fadeOut();
+            myFunction();
+        }
+    </script>
+    <script src="darkmode.js"></script>
 </body>
-</html>
