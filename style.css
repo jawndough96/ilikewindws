@@ -260,7 +260,8 @@ body.select-version .play-button {
     -webkit-text-stroke: 0;
 	/*	*/
 	position:absolute;
-	right:20;
+	right:0;
+    margin-left: 20;
 	top:calc(100% - 40px);
 	transform: rotate(-20deg);
 	color: yellow;
