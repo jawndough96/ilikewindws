@@ -14,159 +14,169 @@
     <link type="image/png" rel="shortcut icon" href="favicon.png" />
     <script type="text/javascript" src="classes.js"></script>
     <script type="text/javascript" src="fix-webm-duration.js"></script>
+    <style>
+      /* Debug info button styling */
+      #debug-toggle {
+          position: fixed;
+          top: 10px;
+          right: 10px;
+          background-color: #ffffff;
+          color: #000000;
+          border: 1px solid #000000;
+          padding: 5px 10px;
+          font-family: Arial, sans-serif;
+          cursor: pointer;
+          z-index: 1000;
+      }
+      /* Debug panel styling */
+      #debugPanel {
+          position: fixed;
+          top: 50px;
+          right: 10px;
+          width: 400px;
+          max-height: 50vh;
+          overflow-y: auto;
+          background: #ffffff;
+          color: #000000;
+          border: 1px solid #000000;
+          font-family: monospace;
+          font-size: 12px;
+          padding: 10px;
+          z-index: 1000;
+          display: none;
+      }
+      /* Download button styling (inside debug panel) */
+      #downloadBtn {
+          margin-bottom: 10px;
+      }
+    </style>
     <script type="text/javascript">
       "use strict";
-      window.addEventListener("load", () => {
-        if (document.location.href.startsWith("file:")) {
-          alert("HTTP please, do not open this file locally, run a local HTTP server and load it via HTTP!");
-        } else {
-          // %%%%%%%%% launch options %%%%%%%%%%%%
-          window.eaglercraftXOpts = {
-            container: "game_frame",
-            assetsURI: "assets.epk",
-            localesURI: "lang/",
-            servers: [
-              /* example: { addr: "ws://localhost:8081/", name: "Local test server" } */
-            ]
-          };
-          // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-          var q = window.location.search;
-          if (typeof q === "string" && q.startsWith("?")) {
-            q = new URLSearchParams(q);
-            var s = q.get("server");
-            if (s) window.eaglercraftXOpts.joinServer = s;
+      // Override console functions to capture logs.
+      (function() {
+          // Backup the original console methods.
+          var originalLog = console.log;
+          var originalWarn = console.warn;
+          var originalError = console.error;
+          // Global array to store debug log messages
+          window.debugLogs = [];
+
+          /**
+           * Append message to log array and update the debug panel.
+           * Each message includes a timestamp, its type, and the content.
+           */
+          function addToDebugLog(type, args) {
+              var timestamp = new Date().toLocaleTimeString();
+              var message = "[" + timestamp + "] " + type + ": " + Array.from(args).join(" ");
+              window.debugLogs.push(message);
+              var debugContent = document.getElementById("debugContent");
+              if (debugContent) {
+                  debugContent.textContent = window.debugLogs.join("\n");
+              }
           }
 
-          main();
+          console.log = function() {
+              addToDebugLog("LOG", arguments);
+              originalLog.apply(console, arguments);
+          };
 
-          // --- Debug UI Implementation ---
+          console.warn = function() {
+              addToDebugLog("WARN", arguments);
+              originalWarn.apply(console, arguments);
+          };
 
-          // Create "Debug info" button (always visible, fixed to top-right)
+          console.error = function() {
+              addToDebugLog("ERROR", arguments);
+              originalError.apply(console, arguments);
+          };
+      })();
+
+      window.addEventListener("load", () => {
+          if (document.location.href.startsWith("file:")) {
+              alert("HTTP please, do not open this file locally, run a local HTTP server and load it via HTTP!");
+          } else {
+              // %%%%%%%%% Launch options %%%%%%%%%%%%
+              window.eaglercraftXOpts = {
+                  container: "game_frame",
+                  assetsURI: "assets.epk",
+                  localesURI: "lang/",
+                  servers: [
+                      /* example: { addr: "ws://localhost:8081/", name: "Local test server" } */
+                  ]
+              };
+
+              // If the query string includes a server parameter, join that server.
+              var q = window.location.search;
+              if (typeof q === "string" && q.startsWith("?")) {
+                  q = new URLSearchParams(q);
+                  var s = q.get("server");
+                  if (s) window.eaglercraftXOpts.joinServer = s;
+              }
+
+              // Initialize the debug controls (buttons & panel).
+              setupDebugControls();
+
+              // Start the main function (assumed to be defined in classes.js)
+              main();
+          }
+      });
+
+      /**
+       * Creates and configures the "Debug info" button and the debug panel.
+       * The debug panel shows log messages and includes a "Download Debug Logs" button.
+       */
+      function setupDebugControls() {
+          // Create Debug info button fixed at the top right.
           var debugBtn = document.createElement("button");
-          debugBtn.id = "debug-btn";
+          debugBtn.id = "debug-toggle";
           debugBtn.textContent = "Debug info";
-          debugBtn.style.position = "fixed";
-          debugBtn.style.top = "10px";
-          debugBtn.style.right = "10px";
-          debugBtn.style.zIndex = "10001";
           document.body.appendChild(debugBtn);
 
-          // Create debug panel (hidden by default)
+          // Create the debug panel container.
           var debugPanel = document.createElement("div");
-          debugPanel.id = "debug-panel";
-          debugPanel.style.position = "fixed";
-          debugPanel.style.top = "50px";
-          debugPanel.style.right = "10px";
-          debugPanel.style.width = "300px";
-          debugPanel.style.maxHeight = "400px";
-          debugPanel.style.background = "white";
-          debugPanel.style.color = "black";
-          debugPanel.style.border = "1px solid black";
-          debugPanel.style.overflowY = "auto";
-          debugPanel.style.display = "none";
-          debugPanel.style.zIndex = "10000";
-          debugPanel.style.fontFamily = "monospace";
-          document.body.appendChild(debugPanel);
+          debugPanel.id = "debugPanel";
 
-          // Header area inside the debug panel with a title and the Advanced Debug toggle.
-          var header = document.createElement("div");
-          header.style.padding = "5px";
-          header.style.background = "#eee";
-          header.style.borderBottom = "1px solid black";
-          header.style.display = "flex";
-          header.style.justifyContent = "space-between";
-          header.style.alignItems = "center";
-          var headerSpan = document.createElement("span");
-          headerSpan.textContent = "Debug Log";
-          header.appendChild(headerSpan);
-          var advancedToggle = document.createElement("button");
-          advancedToggle.id = "advanced-toggle";
-          advancedToggle.textContent = "Enable Advanced Debug";
-          advancedToggle.style.fontSize = "12px";
-          header.appendChild(advancedToggle);
-          debugPanel.appendChild(header);
-
-          // Container for displaying the debug messages.
-          var debugMessages = document.createElement("div");
-          debugMessages.id = "debug-messages";
-          debugMessages.style.padding = "5px";
-          debugMessages.style.whiteSpace = "pre-wrap";
-          debugMessages.style.fontSize = "12px";
-          debugPanel.appendChild(debugMessages);
-
-          // Button to download the logs (only visible in advanced mode)
+          // Create the Download Debug Logs button.
           var downloadBtn = document.createElement("button");
-          downloadBtn.id = "download-log";
-          downloadBtn.textContent = "Download Debug Log";
-          downloadBtn.style.display = "none";
-          downloadBtn.style.margin = "5px";
-          downloadBtn.style.fontSize = "12px";
+          downloadBtn.id = "downloadBtn";
+          downloadBtn.textContent = "Download Debug Logs";
           debugPanel.appendChild(downloadBtn);
 
-          // Toggle display of the debug panel when the Debug info button is clicked.
-          debugBtn.addEventListener("click", () => {
-            debugPanel.style.display = debugPanel.style.display === "none" ? "block" : "none";
+          // Create a preformatted element to hold log messages.
+          var debugContent = document.createElement("pre");
+          debugContent.id = "debugContent";
+          debugContent.style.whiteSpace = "pre-wrap"; // Wrap text instead of one long line.
+          debugPanel.appendChild(debugContent);
+
+          document.body.appendChild(debugPanel);
+
+          // Toggle the display of the debug panel when clicking the Debug info button.
+          debugBtn.addEventListener("click", function() {
+              if (debugPanel.style.display === "none" || debugPanel.style.display === "") {
+                  debugPanel.style.display = "block";
+              } else {
+                  debugPanel.style.display = "none";
+              }
           });
 
-          // Toggle advanced debug mode — when enabled, show the Download button.
-          var advancedDebugEnabled = false;
-          advancedToggle.addEventListener("click", () => {
-            advancedDebugEnabled = !advancedDebugEnabled;
-            downloadBtn.style.display = advancedDebugEnabled ? "inline-block" : "none";
-            advancedToggle.textContent = advancedDebugEnabled ? "Disable Advanced Debug" : "Enable Advanced Debug";
+          // Download the debug logs as a text file when clicking the Download button.
+          downloadBtn.addEventListener("click", function() {
+              var content = window.debugLogs.join("\n");
+              var blob = new Blob([content], { type: "text/plain" });
+              var url = URL.createObjectURL(blob);
+
+              var a = document.createElement("a");
+              a.href = url;
+              a.download = "debug_logs.txt";
+              a.click();
+
+              URL.revokeObjectURL(url);
           });
-
-          // When the download button is pressed, compile and download the debug log as a text file.
-          downloadBtn.addEventListener("click", () => {
-            var logs = window._debugLogArray.join("\n");
-            var blob = new Blob([logs], { type: "text/plain;charset=utf-8" });
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement("a");
-            a.href = url;
-            a.download = "debug-log.txt";
-            a.click();
-            URL.revokeObjectURL(url);
-          });
-
-          // --- Redirect Console Output to the Debug Log ---
-
-          // Create an array to store the log messages.
-          window._debugLogArray = [];
-
-          // Save original console methods.
-          const originalLog = console.log;
-          const originalError = console.error;
-          const originalWarn = console.warn;
-
-          // Helper function to append messages to our debug area.
-          function appendDebugMessage(message) {
-            window._debugLogArray.push(message);
-            debugMessages.textContent += message + "\n";
-            // Ensure the latest messages are visible.
-            debugMessages.scrollTop = debugMessages.scrollHeight;
-          }
-
-          // Override console.log, console.error, and console.warn.
-          console.log = function(...args) {
-            originalLog.apply(console, args);
-            appendDebugMessage("[LOG] " + args.join(" "));
-          };
-
-          console.error = function(...args) {
-            originalError.apply(console, args);
-            appendDebugMessage("[ERROR] " + args.join(" "));
-          };
-
-          console.warn = function(...args) {
-            originalWarn.apply(console, args);
-            appendDebugMessage("[WARN] " + args.join(" "));
-          };
-        }
-      });
+      }
     </script>
   </head>
   <body style="margin:0px;width:100vw;height:100vh;overflow:hidden;" id="game_frame">
-    <!-- The game canvas (or iframe) is rendered here -->
+    <!-- The game or application content is loaded via main() -->
   </body>
 </html>
