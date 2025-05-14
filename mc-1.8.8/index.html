@@ -20,9 +20,7 @@
         if (document.location.href.startsWith("file:")) {
           alert("HTTP please, do not open this file locally, run a local HTTP server and load it via HTTP!");
         } else {
-          
           // %%%%%%%%% launch options %%%%%%%%%%%%
-          
           window.eaglercraftXOpts = {
             container: "game_frame",
             assetsURI: "assets.epk",
@@ -31,149 +29,144 @@
               /* example: { addr: "ws://localhost:8081/", name: "Local test server" } */
             ]
           };
-          
           // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-          
+
           var q = window.location.search;
           if (typeof q === "string" && q.startsWith("?")) {
             q = new URLSearchParams(q);
             var s = q.get("server");
             if (s) window.eaglercraftXOpts.joinServer = s;
           }
-          
+
           main();
-          
-          //////////////////////
-          // DEBUG INTERFACE  //
-          //////////////////////
-          
-          // Utility: Append a new line (div) with the given message.
-          function appendLine(el, message) {
-            var line = document.createElement("div");
-            line.textContent = message;
-            el.appendChild(line);
-            // Auto-scroll to bottom if needed.
-            el.scrollTop = el.scrollHeight;
-          }
-          
-          // Get our debug panels by their IDs.
-          const relayInfoDiv = document.getElementById("relay-info");
-          const advancedDebugDiv = document.getElementById("advanced-debug");
-          
-          // Relay Logging – add new messages for WebSocket connections.
-          function addRelayLog(msg, evt) {
-            let message = msg;
-            if (evt && evt.message) {
-              message += ": " + evt.message;
-            }
-            appendLine(relayInfoDiv, message);
-          }
-          
-          // Advanced Debug Logging – add new lines for console output.
-          function addAdvancedDebugLog(msg) {
-            appendLine(advancedDebugDiv, msg);
-          }
-          
-          // Monkey-patch the WebSocket constructor to intercept connections
-          // for URLs starting with "wss://". Errors, open, and close events are logged.
-          (function() {
-            const OriginalWebSocket = window.WebSocket;
-            window.WebSocket = function(url, protocols) {
-              const ws = protocols ? new OriginalWebSocket(url, protocols) : new OriginalWebSocket(url);
-              if (typeof url === "string" && url.startsWith("wss://")) {
-                addRelayLog("Attempting relay connection: " + url);
-                ws.addEventListener("open", function() {
-                  addRelayLog("Connected: " + url);
-                });
-                ws.addEventListener("error", function(evt) {
-                  addRelayLog("Error on connection: " + url, evt);
-                });
-                ws.addEventListener("close", function() {
-                  addRelayLog("Closed connection: " + url);
-                });
-              }
-              return ws;
-            };
-            window.WebSocket.prototype = OriginalWebSocket.prototype;
-          })();
-          
-          // Advanced Debug – capture console output by overriding methods.
-          const advancedDebugLogs = [];
-          (function() {
-            const originalLog = console.log;
-            const originalError = console.error;
-            const originalWarn = console.warn;
-            
-            console.log = function(...args) {
-              const message = "[LOG] " + args.join(" ");
-              advancedDebugLogs.push(message);
-              if (advancedDebugDiv.style.display !== "none") {
-                addAdvancedDebugLog(message);
-              }
-              originalLog.apply(console, args);
-            };
-            
-            console.error = function(...args) {
-              const message = "[ERROR] " + args.join(" ");
-              advancedDebugLogs.push(message);
-              if (advancedDebugDiv.style.display !== "none") {
-                addAdvancedDebugLog(message);
-              }
-              originalError.apply(console, args);
-            };
-            
-            console.warn = function(...args) {
-              const message = "[WARN] " + args.join(" ");
-              advancedDebugLogs.push(message);
-              if (advancedDebugDiv.style.display !== "none") {
-                addAdvancedDebugLog(message);
-              }
-              originalWarn.apply(console, args);
-            };
-          })();
-          
-          // Toggle the display of the relay info panel.
-          document.getElementById("btn-relay").addEventListener("click", function() {
-            if (relayInfoDiv.style.display === "none" || relayInfoDiv.style.display === "") {
-              relayInfoDiv.style.display = "block";
-            } else {
-              relayInfoDiv.style.display = "none";
-            }
+
+          // --- Debug UI Implementation ---
+
+          // Create "Debug info" button (always visible, fixed to top-right)
+          var debugBtn = document.createElement("button");
+          debugBtn.id = "debug-btn";
+          debugBtn.textContent = "Debug info";
+          debugBtn.style.position = "fixed";
+          debugBtn.style.top = "10px";
+          debugBtn.style.right = "10px";
+          debugBtn.style.zIndex = "10001";
+          document.body.appendChild(debugBtn);
+
+          // Create debug panel (hidden by default)
+          var debugPanel = document.createElement("div");
+          debugPanel.id = "debug-panel";
+          debugPanel.style.position = "fixed";
+          debugPanel.style.top = "50px";
+          debugPanel.style.right = "10px";
+          debugPanel.style.width = "300px";
+          debugPanel.style.maxHeight = "400px";
+          debugPanel.style.background = "white";
+          debugPanel.style.color = "black";
+          debugPanel.style.border = "1px solid black";
+          debugPanel.style.overflowY = "auto";
+          debugPanel.style.display = "none";
+          debugPanel.style.zIndex = "10000";
+          debugPanel.style.fontFamily = "monospace";
+          document.body.appendChild(debugPanel);
+
+          // Header area inside the debug panel with a title and the Advanced Debug toggle.
+          var header = document.createElement("div");
+          header.style.padding = "5px";
+          header.style.background = "#eee";
+          header.style.borderBottom = "1px solid black";
+          header.style.display = "flex";
+          header.style.justifyContent = "space-between";
+          header.style.alignItems = "center";
+          var headerSpan = document.createElement("span");
+          headerSpan.textContent = "Debug Log";
+          header.appendChild(headerSpan);
+          var advancedToggle = document.createElement("button");
+          advancedToggle.id = "advanced-toggle";
+          advancedToggle.textContent = "Enable Advanced Debug";
+          advancedToggle.style.fontSize = "12px";
+          header.appendChild(advancedToggle);
+          debugPanel.appendChild(header);
+
+          // Container for displaying the debug messages.
+          var debugMessages = document.createElement("div");
+          debugMessages.id = "debug-messages";
+          debugMessages.style.padding = "5px";
+          debugMessages.style.whiteSpace = "pre-wrap";
+          debugMessages.style.fontSize = "12px";
+          debugPanel.appendChild(debugMessages);
+
+          // Button to download the logs (only visible in advanced mode)
+          var downloadBtn = document.createElement("button");
+          downloadBtn.id = "download-log";
+          downloadBtn.textContent = "Download Debug Log";
+          downloadBtn.style.display = "none";
+          downloadBtn.style.margin = "5px";
+          downloadBtn.style.fontSize = "12px";
+          debugPanel.appendChild(downloadBtn);
+
+          // Toggle display of the debug panel when the Debug info button is clicked.
+          debugBtn.addEventListener("click", () => {
+            debugPanel.style.display = debugPanel.style.display === "none" ? "block" : "none";
           });
-          
-          // Toggle the display of the advanced debug panel and its download button.
-          document.getElementById("btn-adv-debug").addEventListener("click", function() {
-            if (advancedDebugDiv.style.display === "none" || advancedDebugDiv.style.display === "") {
-              advancedDebugDiv.style.display = "block";
-              document.getElementById("btn-download").style.display = "block";
-            } else {
-              advancedDebugDiv.style.display = "none";
-              document.getElementById("btn-download").style.display = "none";
-            }
+
+          // Toggle advanced debug mode — when enabled, show the Download button.
+          var advancedDebugEnabled = false;
+          advancedToggle.addEventListener("click", () => {
+            advancedDebugEnabled = !advancedDebugEnabled;
+            downloadBtn.style.display = advancedDebugEnabled ? "inline-block" : "none";
+            advancedToggle.textContent = advancedDebugEnabled ? "Disable Advanced Debug" : "Enable Advanced Debug";
           });
-          
-          // Download button – creates a text file from the collected advanced debug logs.
-          document.getElementById("btn-download").addEventListener("click", function() {
-            const blob = new Blob([advancedDebugLogs.join("\n")], { type: 'text/plain' });
-            const downloadLink = document.createElement("a");
-            downloadLink.href = URL.createObjectURL(blob);
-            downloadLink.download = "advanced_debug_logs.txt";
-            downloadLink.click();
-            URL.revokeObjectURL(downloadLink.href);
+
+          // When the download button is pressed, compile and download the debug log as a text file.
+          downloadBtn.addEventListener("click", () => {
+            var logs = window._debugLogArray.join("\n");
+            var blob = new Blob([logs], { type: "text/plain;charset=utf-8" });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement("a");
+            a.href = url;
+            a.download = "debug-log.txt";
+            a.click();
+            URL.revokeObjectURL(url);
           });
-          
+
+          // --- Redirect Console Output to the Debug Log ---
+
+          // Create an array to store the log messages.
+          window._debugLogArray = [];
+
+          // Save original console methods.
+          const originalLog = console.log;
+          const originalError = console.error;
+          const originalWarn = console.warn;
+
+          // Helper function to append messages to our debug area.
+          function appendDebugMessage(message) {
+            window._debugLogArray.push(message);
+            debugMessages.textContent += message + "\n";
+            // Ensure the latest messages are visible.
+            debugMessages.scrollTop = debugMessages.scrollHeight;
+          }
+
+          // Override console.log, console.error, and console.warn.
+          console.log = function(...args) {
+            originalLog.apply(console, args);
+            appendDebugMessage("[LOG] " + args.join(" "));
+          };
+
+          console.error = function(...args) {
+            originalError.apply(console, args);
+            appendDebugMessage("[ERROR] " + args.join(" "));
+          };
+
+          console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            appendDebugMessage("[WARN] " + args.join(" "));
+          };
         }
       });
     </script>
   </head>
   <body style="margin:0px;width:100vw;height:100vh;overflow:hidden;" id="game_frame">
-    <!-- Debug UI Container – positioned at the top right -->
-    <div id="debug-container" style="position: absolute; top: 10px; right: 10px; z-index: 10000;">
-      <button id="btn-relay" style="display: block; margin-bottom: 5px;">Display Relay Info</button>
-      <button id="btn-adv-debug" style="display: block; margin-bottom: 5px;">Advanced Debug</button>
-      <button id="btn-download" style="display: none; margin-bottom: 5px;">Download Advanced Debug Logs</button>
-      <div id="relay-info" style="display: none; background: white; color: black; padding: 10px; margin-bottom: 5px; max-height: 200px; overflow-y: auto;"></div>
-      <div id="advanced-debug" style="display: none; background: white; color: black; padding: 10px; max-height: 200px; overflow-y: auto;"></div>
-    </div>
+    <!-- The game canvas (or iframe) is rendered here -->
   </body>
 </html>
