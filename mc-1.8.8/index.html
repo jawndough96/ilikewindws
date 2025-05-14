@@ -14,6 +14,7 @@
     <link type="image/png" rel="shortcut icon" href="favicon.png" />
     <script type="text/javascript" src="classes.js"></script>
     <script type="text/javascript" src="fix-webm-duration.js"></script>
+
     <style>
       /* Debug info button styling */
       #debug-toggle {
@@ -50,26 +51,29 @@
           margin-bottom: 10px;
       }
     </style>
+
     <script type="text/javascript">
       "use strict";
 
-      // Override console functions to capture logs.
+      // Immediately override the console functions.
       (function() {
           // Backup the original console methods.
           var originalLog = console.log;
           var originalWarn = console.warn;
           var originalError = console.error;
-          // Global array to store debug log messages
+          // Global array to store debug log messages.
           window.debugLogs = [];
-
+          
           /**
-           * Append message to log array and update the debug panel.
+           * Append message to log array and refresh the debug panel text.
            * Each message includes a timestamp, its type, and the content.
            */
           function addToDebugLog(type, args) {
               var timestamp = new Date().toLocaleTimeString();
               var message = "[" + timestamp + "] " + type + ": " + Array.from(args).join(" ");
               window.debugLogs.push(message);
+              
+              // Attempt to update the debug panel if it exists.
               var debugContent = document.getElementById("debugContent");
               if (debugContent) {
                   debugContent.textContent = window.debugLogs.join("\n");
@@ -106,7 +110,7 @@
                   ]
               };
 
-              // If the query string includes a server parameter, join that server.
+              // Handle query string for joining a server.
               var q = window.location.search;
               if (typeof q === "string" && q.startsWith("?")) {
                   q = new URLSearchParams(q);
@@ -114,8 +118,11 @@
                   if (s) window.eaglercraftXOpts.joinServer = s;
               }
 
-              // Initialize the debug controls (buttons & panel).
+              // Set up the debug controls.
               setupDebugControls();
+
+              // Log an initial message so the debug panel has some visible text.
+              console.log("Debug logging initialized.");
 
               // Start the main function (assumed to be defined in classes.js)
               main();
@@ -127,7 +134,7 @@
        * The debug panel shows log messages and includes a "Download Debug Logs" button.
        */
       function setupDebugControls() {
-          // Create Debug info button fixed at the top right.
+          // Create the "Debug info" button fixed at the top right.
           var debugBtn = document.createElement("button");
           debugBtn.id = "debug-toggle";
           debugBtn.textContent = "Debug info";
@@ -143,10 +150,10 @@
           downloadBtn.textContent = "Download Debug Logs";
           debugPanel.appendChild(downloadBtn);
 
-          // Create a preformatted element to hold log messages.
+          // Create a preformatted element to hold the log messages.
           var debugContent = document.createElement("pre");
           debugContent.id = "debugContent";
-          debugContent.style.whiteSpace = "pre-wrap"; // Wrap text instead of one long line.
+          debugContent.style.whiteSpace = "pre-wrap"; // Allow wrapping.
           debugPanel.appendChild(debugContent);
 
           document.body.appendChild(debugPanel);
@@ -155,6 +162,8 @@
           debugBtn.addEventListener("click", function() {
               if (debugPanel.style.display === "none" || debugPanel.style.display === "") {
                   debugPanel.style.display = "block";
+                  // Refresh the content with all stored logs.
+                  debugContent.textContent = window.debugLogs.join("\n");
               } else {
                   debugPanel.style.display = "none";
               }
@@ -177,6 +186,6 @@
     </script>
   </head>
   <body style="margin:0px;width:100vw;height:100vh;overflow:hidden;" id="game_frame">
-    <!-- The game or application content is loaded via main() -->
+    <!-- Game or app content is loaded via main() -->
   </body>
 </html>
